@@ -1,8 +1,7 @@
 
 import { MY_API_KEY } from './config.js';
 
-const apiURL = 'https://covid-193.p.rapidapi.com/statistics'; // Ganti dengan URL API yang sesuai
-
+const apiURL = 'https://covid-193.p.rapidapi.com/statistics'; 
 // Fetch data dari API
 async function fetchData(country) {
   try {
