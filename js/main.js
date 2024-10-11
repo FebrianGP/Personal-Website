@@ -1,66 +1,58 @@
+
 import { MY_API_KEY } from './config.js';
-let covid19data;
 
-(function onLoad()
-{
-    // set a function for each button
-    setButtonFunctions();
+const apiURL = 'https://covid-193.p.rapidapi.com/statistics'; // Ganti dengan URL API yang sesuai
 
-    // fetch from each API when the page loads
+// Fetch data dari API
+async function fetchData(country) {
+  try {
+    const response = await fetch(`${apiURL}?country=${encodeURIComponent(country)}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': MY_API_KEY
+      }
+    });
 
-    getLatestCOVID19Data();
-})();
-
-function setButtonFunctions()
-{
-
-    document.getElementById('countries').onchange = function() {
-        const selectedValue = document.getElementById('countries').value;
-        const countryData = covid19data.filter(c => c.country == selectedValue)[0];
-
-        // display data
-        const newConfirmed = document.getElementById('covidNewConfirmed');
-        const totalConfirmed = document.getElementById('covidTotalConfirmed');
-        const covidNewDeaths = document.getElementById('covidNewDeaths');
-        const covidTotalDeaths = document.getElementById('covidTotalDeaths');
-        const lastUpdated = document.getElementById('covidLastUpdate');
-
-        (countryData.cases.new) ? newConfirmed.innerHTML = 'New confirmed cases: ' + countryData.cases.new : newConfirmed.innerHTML = 'New confirmed cases: 0';
-        (countryData.cases.total) ? totalConfirmed.innerHTML = 'Total confirmed cases: ' + countryData.cases.total : totalConfirmed.innerHTML = 'Total confirmed cases: 0';
-        (countryData.deaths.new) ? covidNewDeaths.innerHTML = 'New deaths: ' + countryData.deaths.new : covidNewDeaths.innerHTML = 'New deaths: 0';
-        (countryData.deaths.total) ? covidTotalDeaths.innerHTML = 'Total deaths: ' + countryData.deaths.total : covidTotalDeaths.innerHTML = 'Total deaths: 0';
-        lastUpdated.innerHTML = 'Last updated: ' + countryData.day;
-    };
+    const data = await response.json(); // Mengambil data dan mengubahnya jadi objek
+    displayCovidData(data); // Menampilkan data di halaman
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
 }
 
+// Menampilkan data COVID-19
+function displayCovidData(data) {
+  document.getElementById('covidNewConfirmed').textContent = `New confirmed cases: ${data.NewConfirmed}`;
+  document.getElementById('covidTotalConfirmed').textContent = `Total confirmed cases: ${data.TotalConfirmed}`;
+  document.getElementById('covidNewDeaths').textContent = `New deaths: ${data.NewDeaths}`;
+  document.getElementById('covidTotalDeaths').textContent = `Total deaths: ${data.TotalDeaths}`;
+  document.getElementById('covidLastUpdate').textContent = `Last updated: ${data.Date}`;
+}
 
-// COVID 19 Data
-async function getLatestCOVID19Data()
-{
-    await fetch("https://covid-193.p.rapidapi.com/statistics", {
-        "method": "GET",
-        "headers": {
-            "x-rapidapi-host": "covid-193.p.rapidapi.com",
-            "x-rapidapi-key": MY_API_KEY
-        }
-    })
-    .then(response => response.json())
-    .then(response => {
-        console.log("COVID 19 API object:");
-        console.log(response);
-        console.log("\n");
+// Saat user memilih negara dari dropdown
+document.getElementById('countries').addEventListener('change', function () {
+  const selectedCountry = this.value;
+  if (selectedCountry !== 'Select a country') {
+    fetchData(selectedCountry); // Panggil fungsi fetch data
+  }
+});
 
-        // add all countries to select element
-        response.response.forEach(c => {
-            const option = document.createElement('option');
-            option.innerHTML = c.country;
-            document.getElementById('countries').appendChild(option);
-        })
-
-        // save covid data to global variable
-        covid19data = response.response;
-    })
-    .catch(err => {
-        console.log(err);
+// Contoh encode JSON untuk data post (jika diperlukan)
+async function sendData(data) {
+  try {
+    const response = await fetch(apiURL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': MY_API_KEY
+      },
+      body: JSON.stringify(data) // Encoding JSON
     });
+
+    const responseData = await response.json(); // Decode respons JSON
+    console.log('Response:', responseData);
+  } catch (error) {
+    console.error('Error sending data:', error);
+  }
 }
